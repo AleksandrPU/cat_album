@@ -11,8 +11,7 @@ if os.getenv('DJANGO_DEBUG', 'django').lower() == 'true':
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = []
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'django').split(', ')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'django').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
