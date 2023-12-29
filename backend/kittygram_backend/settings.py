@@ -4,17 +4,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django'),
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', )
 
-if os.getenv('DJANGO_DEBUG', 'django').lower() == 'true':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = os.getenv('DJANGO_DEBUG', False)
 
-if os.getenv('DJANGO_ALLOWED_HOSTS', ''):
-    ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'django').split(',')
-else:
-    ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -68,7 +62,7 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
-     }
+    }
 }
 
 
