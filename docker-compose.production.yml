@@ -1,9 +1,8 @@
-version: '3'
-
 volumes:
   pg_data_production:
-  static_volume:
+  backend_static_volume:
   media_volume:
+  frontend_static_volume:
 
 services:
   db:
@@ -18,13 +17,13 @@ services:
     depends_on:
       - db
     volumes:
-      - static_volume:/app/static
-      - media_volume:/app/media
+      - backend_static_volume:/app/static/
+      - media_volume:/app/media/
 
   frontend:
     image: aleksup/kittygram_frontend
     volumes:
-      - static_volume:/static
+      - frontend_static_volume:/static/
     command: cp -r /app/build/. /static/
 
   gateway:
@@ -35,5 +34,6 @@ services:
       - backend
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - static_volume:/var/html/static
-      - media_volume:/var/html/media
+      - backend_static_volume:/var/html/static/
+      - frontend_static_volume:/usr/share/nginx/html/
+      - media_volume:/var/html/media/
