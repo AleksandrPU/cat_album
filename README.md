@@ -14,10 +14,10 @@
 
 ### Backend
 
-- [Django-3.2](https://www.djangoproject.com/)
+- [Django-4.2](https://www.djangoproject.com/)
 - [Django Rest Framework](https://www.django-rest-framework.org/)
 
-В качестве СУБД используется [PostgreSQL-13](https://www.postgresql.org/).
+В качестве СУБД используется [PostgreSQL-16](https://www.postgresql.org/).
 
 Для создания токенов и аутентификации пользователей применен [djoser](https://djoser.readthedocs.io/). 
 
