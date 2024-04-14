@@ -2,13 +2,15 @@
 import os
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django')
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'false').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = os.getenv(
+    'DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -66,9 +68,6 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -90,13 +89,11 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -105,7 +102,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated', 
+        'rest_framework.permissions.IsAuthenticated',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -116,3 +113,44 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 
 }
+
+DEBUG_DB = False
+if DEBUG:
+    if DEBUG_DB:
+        LOGGING = {
+            'version': 1,
+            'handlers': {
+                'console': {'class': 'logging.StreamHandler'}
+            },
+            'loggers': {
+                'django.db.backends': {
+                    'handlers': ['console'],
+                    'level': 'DEBUG'
+                }
+            }
+        }
+    else:
+        LOGGING = {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'default': {
+                    'format': '[DJANGO] %(levelname)s %(asctime)s %(module)s'
+                              '%(name)s.%(funcName)s:%(lineno)s: %(message)s'
+                },
+            },
+            'handlers': {
+                'console': {
+                    'level': 'DEBUG',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'default',
+                }
+            },
+            'loggers': {
+                'root': {
+                    'handlers': ['console'],
+                    'level': 'DEBUG',
+                    'propagate': True,
+                }
+            },
+        }

@@ -13,6 +13,5 @@ class CatsAPITestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_list_exists(self):
-        """Проверка доступности списка задач."""
         response = self.client.get('/api/cats/')
         self.assertEqual(response.status_code, HTTPStatus.OK)

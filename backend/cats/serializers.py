@@ -1,23 +1,10 @@
-import base64
-import datetime as dt
+from datetime import datetime as dt
 
-import webcolors
-from django.core.files.base import ContentFile
+from django.db import transaction
 from rest_framework import serializers
 
-from .models import Achievement, AchievementCat, Cat
-
-
-class Hex2NameColor(serializers.Field):
-    def to_representation(self, value):
-        return value
-
-    def to_internal_value(self, data):
-        try:
-            data = webcolors.hex_to_name(data)
-        except ValueError:
-            raise serializers.ValidationError('Для этого цвета нет имени')
-        return data
+from cats.fields import Base64ImageField, Hex2NameColor
+from cats.models import Achievement, Cat
 
 
 class AchievementSerializer(serializers.ModelSerializer):
@@ -28,32 +15,25 @@ class AchievementSerializer(serializers.ModelSerializer):
         fields = ('id', 'achievement_name')
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
-
-
 class CatSerializer(serializers.ModelSerializer):
     achievements = AchievementSerializer(required=False, many=True)
     color = Hex2NameColor()
     age = serializers.SerializerMethodField()
     image = Base64ImageField(required=False, allow_null=True)
-    image_url = serializers.SerializerMethodField(
-        'get_image_url',
-        read_only=True,
-    )
+    image_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Cat
         fields = (
-            'id', 'name', 'color', 'birth_year', 'achievements',
-            'owner', 'age', 'image', 'image_url'
+            'id',
+            'name',
+            'color',
+            'birth_year',
+            'achievements',
+            'owner',
+            'age',
+            'image',
+            'image_url',
         )
         read_only_fields = ('owner',)
 
@@ -63,43 +43,41 @@ class CatSerializer(serializers.ModelSerializer):
         return None
 
     def get_age(self, obj):
-        return dt.datetime.now().year - obj.birth_year
+        return dt.now().year - obj.birth_year
 
-    def create(self, validated_data):
-        if 'achievements' not in self.initial_data:
-            cat = Cat.objects.create(**validated_data)
-            return cat
-        achievements = validated_data.pop('achievements')
-        cat = Cat.objects.create(**validated_data)
+    def add_achievements(self, cat, achievements):
+        achievement_objects = []
         for achievement in achievements:
             current_achievement, status = Achievement.objects.get_or_create(
                 **achievement
             )
-            AchievementCat.objects.create(
-                achievement=current_achievement, cat=cat
-            )
+            achievement_objects.append(current_achievement)
+
+        cat.achievements.set(achievement_objects)
+
+    @transaction.atomic
+    def create(self, validated_data):
+        achievements = []
+        if 'achievements' in validated_data:
+            achievements = validated_data.pop('achievements')
+
+        cat = Cat.objects.create(**validated_data)
+
+        self.add_achievements(cat, achievements)
+
         return cat
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.color = validated_data.get('color', instance.color)
-        instance.birth_year = validated_data.get(
-            'birth_year', instance.birth_year
-        )
-        instance.image = validated_data.get('image', instance.image)
+        achievements = []
+        if 'achievements' in validated_data:
+            achievements = validated_data.pop('achievements')
 
-        if 'achievements' not in validated_data:
-            instance.save()
-            return instance
+        super().update(instance, validated_data)
 
-        achievements_data = validated_data.pop('achievements')
-        lst = []
-        for achievement in achievements_data:
-            current_achievement, status = Achievement.objects.get_or_create(
-                **achievement
-            )
-            lst.append(current_achievement)
-        instance.achievements.set(lst)
+        if achievements:
+            instance.set_achievements.all().delete()
 
-        instance.save()
+            self.add_achievements(instance, achievements)
+
         return instance

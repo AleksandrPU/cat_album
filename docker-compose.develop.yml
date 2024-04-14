@@ -7,7 +7,7 @@ volumes:
 
 services:
   db:
-    image: postgres:13
+    image: postgres:16-alpine
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -18,23 +18,22 @@ services:
     depends_on:
       - db
     volumes:
-      - static:/backend_static
-      - media:/media
+      - static:/app/static
+      - media:/app/media
 
   frontend:
-    env_file: .env
     build: ./frontend/
     volumes:
       - static:/static
     command: cp -r /app/build/. /static/
 
   gateway:
-    build: ./nginx/
-    env_file: .env
+    image: nginx:1.25-alpine
     ports:
-      - 9000:80
+      - "9000:80"
     depends_on:
       - backend
     volumes:
-      - static:/static
-      - media:/media
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static:/var/html/static
+      - media:/var/html/media

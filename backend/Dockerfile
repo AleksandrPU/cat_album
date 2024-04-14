@@ -1,10 +1,10 @@
-FROM python:3.9
+FROM python:3.11-alpine
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt --no-cache-dir
+RUN python -m pip install -U pip --no-cache-dir && pip install -r requirements.txt --no-cache-dir
 
 COPY . .
 
