@@ -10,7 +10,7 @@ git clone https://github.com/yandex-praktikum/kittygram_backend.git
 cd kittygram_backend
 ```
 
-Cоздать и активировать виртуальное окружение:
+Создать и активировать виртуальное окружение:
 
 ```
 python3 -m venv env
