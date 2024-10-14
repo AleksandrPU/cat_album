@@ -153,3 +153,4 @@ node_modules
 
 # backup
 *.bak
+backup/
